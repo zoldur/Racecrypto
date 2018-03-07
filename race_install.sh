@@ -20,14 +20,13 @@ NC='\033[0m'
 
 
 function install_sentinel() {
-  #SENTINELPORT=$[10001+$OMEGAPORT]
   echo -e "${GREEN}Install sentinel.${NC}"
   apt-get install python-virtualenv virtualenv >/dev/null 2>&1
   git clone $SENTINEL_REPO $CONFIGFOLDER/sentinel >/dev/null 2>&1
   cd $CONFIGFOLDER/sentinel
   virtualenv ./venv >/dev/null 2>&1  
   ./venv/bin/pip install -r requirements.txt >/dev/null 2>&1
-  echo  "* * * * * cd $CONFIGFOLDER/sentinel && ./venv/bin/python bin/sentinel.py >> ~/$SENTINEL_LOG 2>&1" > $CONFIGFOLDER/$COIN_NAME.cron
+  echo  "* * * * * cd $CONFIGFOLDER/sentinel && ./venv/bin/python bin/sentinel.py >> $CONFIGFOLDER/sentinel.log 2>&1" > $CONFIGFOLDER/$COIN_NAME.cron
   crontab $CONFIGFOLDER/$COIN_NAME.cron
   rm $CONFIGFOLDER/$COIN_NAME.cron >/dev/null 2>&1
 }
@@ -132,6 +131,7 @@ function update_config() {
   cat << EOF >> $CONFIGFOLDER/$CONFIG_FILE
 logintimestamps=1
 maxconnections=256
+bind=$NODEIP
 masternode=1
 masternodeaddr=$NODEIP:$COIN_PORT
 masternodeprivkey=$COINKEY
@@ -222,7 +222,7 @@ echo -e "Installing required packages, it may take some time to finish.${NC}"
 apt-get update >/dev/null 2>&1
 apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" make software-properties-common \
 build-essential libtool autoconf libssl-dev libboost-dev libboost-chrono-dev libboost-filesystem-dev libboost-program-options-dev \
-libboost-system-dev libboost-test-dev libboost-thread-dev sudo automake git wget pwgen curl libdb4.8-dev bsdmainutils libdb4.8++-dev \
+libboost-system-dev libboost-test-dev libboost-thread-dev sudo automake git wget curl libdb4.8-dev bsdmainutils libdb4.8++-dev \
 libminiupnpc-dev libgmp3-dev ufw pkg-config libevent-dev  libdb5.3++ unzip bzip2 >/dev/null 2>&1
 if [ "$?" -gt "0" ];
   then
@@ -232,8 +232,8 @@ if [ "$?" -gt "0" ];
     echo "apt-add-repository -y ppa:bitcoin/bitcoin"
     echo "apt-get update"
     echo "apt install -y make build-essential libtool software-properties-common autoconf libssl-dev libboost-dev libboost-chrono-dev libboost-filesystem-dev \
-libboost-program-options-dev libboost-system-dev libboost-test-dev libboost-thread-dev sudo automake git pwgen curl libdb4.8-dev \
-bsdmainutils libdb4.8++-dev libminiupnpc-dev libgmp3-dev ufw fail2ban pkg-config libevent-dev unzip"
+libboost-program-options-dev libboost-system-dev libboost-test-dev libboost-thread-dev sudo automake git curl libdb4.8-dev \
+bsdmainutils libdb4.8++-dev libminiupnpc-dev libgmp3-dev ufw fail2ban pkg-config libevent-dev unzip bzip2"
  exit 1
 fi
 
@@ -251,7 +251,8 @@ function important_information() {
  echo -e "VPS_IP:PORT ${RED}$NODEIP:$COIN_PORT${NC}"
  echo -e "MASTERNODE PRIVATEKEY is: ${RED}$COINKEY${NC}"
  if [[ -n $SENTINEL_REPO  ]]; then 
-  echo -e "${RED}Sentinel${NC} is installed in ${GREEN}$CONFIGFOLDER/sentinel${NC}" 
+  echo -e "${RED}Sentinel${NC} is installed in ${RED}$CONFIGFOLDER/sentinel${NC}"
+  echo -e "Sentinel logs is: ${RED}$CONFIGFOLDER/sentinel.log${NC}"
  fi
  echo -e "Please check ${RED}$COIN_NAME${NC} is running with the following command: ${GREEN}systemctl status $COIN_NAME.service${NC}"
  echo -e "================================================================================================================================"
