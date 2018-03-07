@@ -21,7 +21,7 @@ NC='\033[0m'
 
 function install_sentinel() {
   echo -e "${GREEN}Install sentinel.${NC}"
-  apt-get install python-virtualenv virtualenv >/dev/null 2>&1
+  apt-get -y install python-virtualenv virtualenv >/dev/null 2>&1
   git clone $SENTINEL_REPO $CONFIGFOLDER/sentinel >/dev/null 2>&1
   cd $CONFIGFOLDER/sentinel
   virtualenv ./venv >/dev/null 2>&1  
